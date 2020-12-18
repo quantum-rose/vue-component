@@ -23,6 +23,7 @@
             />
         </div>
         <MovieClip
+            class="demo"
             ref="MovieClip"
             :frames="frames"
             :duration="1000"
@@ -34,7 +35,6 @@
             @pause="$refs.movieClipPause.flash()"
             @start="$refs.movieClipStart.flash()"
             @end="$refs.movieClipEnd.flash()"
-            style="max-width: 100%"
         />
         <div class="button-group">
             <button class="btn" @click="$refs.MovieClip.play()">Play</button>
@@ -86,6 +86,10 @@ export default {
     .event-light {
         margin-left: 2px;
         margin-right: 2px;
+    }
+
+    .demo {
+        max-width: 100%;
     }
 
     .btn {
