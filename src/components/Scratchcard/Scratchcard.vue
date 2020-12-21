@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import Scratchcard from "./Scratchcar";
+import Scratchcard from "./Scratchcard";
 
 export default {
     name: "Scratchcard",

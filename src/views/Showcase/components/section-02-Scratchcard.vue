@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import Scratchcard from "@/components/Scratchcar/Scratchcard.vue";
+import Scratchcard from "@/components/Scratchcard/Scratchcard.vue";
 
 export default {
     name: "w",
