@@ -3,10 +3,10 @@
 </template>
 
 <script>
-import ScratchCard from "./ScratchCard";
+import Scratchcard from "./Scratchcar";
 
 export default {
-    name: "ScratchCard",
+    name: "Scratchcard",
     props: {
         width: {
             type: Number,
@@ -22,7 +22,7 @@ export default {
         },
     },
     mounted() {
-        new ScratchCard(this.$refs.cvs, this.cover);
+        new Scratchcard(this.$refs.cvs, this.cover);
     },
 };
 </script>

@@ -45,10 +45,10 @@ class Footprint {
     };
 }
 
-class ScratchCard {
+class Scratchcard {
     cvs = null;
     cvsCtx = null;
-    footPrint = [];
+    footprints = [];
     cover = null;
 
     constructor(cvs, img) {
@@ -58,6 +58,10 @@ class ScratchCard {
         this.cover = document.createElement('img');
         this.cover.src = img;
         this.cover.addEventListener('load', this.#onLoad);
+        this.cover.addEventListener('error', () => {
+            this.cover = null;
+            this.#onLoad();
+        });
     }
 
     #onLoad = () => {
@@ -68,7 +72,7 @@ class ScratchCard {
 
     #pixelRatio = { x: 1, y: 1 };
     #offset = { left: 0, top: 0 };
-    #lastPoint = { x: 0, y: 0 };
+    #lastPoint = {};
     #bindMouseEvent = () => {
         const { cvs } = this;
         cvs.addEventListener('mousedown', e => {
@@ -81,19 +85,30 @@ class ScratchCard {
     };
     #bindTouchEvent = () => {
         const { cvs } = this;
-        cvs.addEventListener('touchstart', e => {
-            e.changedTouches.forEach(item => {
-                this.#wipeStart(item);
-            });
-        });
-        cvs.addEventListener('touchmove', e => {
-            e.preventDefault();
-            e.changedTouches.forEach(item => {
-                this.#wiping(item);
-            });
-        });
+        cvs.addEventListener(
+            'touchstart',
+            e => {
+                e.preventDefault();
+                e.changedTouches.forEach(item => {
+                    this.#wipeStart(item);
+                });
+            },
+            { passive: false }
+        );
+        cvs.addEventListener(
+            'touchmove',
+            e => {
+                e.preventDefault();
+                e.changedTouches.forEach(item => {
+                    this.#wiping(item);
+                });
+            },
+            { passive: false }
+        );
     };
     #wipeStart = e => {
+        const id = e.identifier || 0;
+        const lastPoint = this.#lastPoint[id] || (this.#lastPoint[id] = { x: 0, y: 0 });
         const {
             cvs,
             cvs: { width, height, offsetWidth, offsetHeight },
@@ -104,22 +119,23 @@ class ScratchCard {
         this.#offset.left = left;
         this.#offset.top = top;
         const { pageX, pageY } = e;
-        this.#lastPoint.x = (pageX - left) * this.#pixelRatio.x;
-        this.#lastPoint.y = (pageY - top) * this.#pixelRatio.y;
+        lastPoint.x = (pageX - left) * this.#pixelRatio.x;
+        lastPoint.y = (pageY - top) * this.#pixelRatio.y;
     };
     #wiping = e => {
+        const lastPoint = this.#lastPoint[e.identifier || 0];
         const { left, top } = this.#offset;
-        const { x, y } = this.#lastPoint;
+        const { x, y } = lastPoint;
         const { pageX, pageY } = e;
-        this.#lastPoint.x = (pageX - left) * this.#pixelRatio.x;
-        this.#lastPoint.y = (pageY - top) * this.#pixelRatio.y;
-        this.footPrint.push(
+        lastPoint.x = (pageX - left) * this.#pixelRatio.x;
+        lastPoint.y = (pageY - top) * this.#pixelRatio.y;
+        this.footprints.push(
             new Footprint({
                 cvsCtx: this.cvsCtx,
                 startX: x,
                 startY: y,
-                endX: this.#lastPoint.x,
-                endY: this.#lastPoint.y,
+                endX: lastPoint.x,
+                endY: lastPoint.y,
             })
         );
     };
@@ -131,10 +147,15 @@ class ScratchCard {
             cover,
         } = this;
         cvsCtx.clearRect(0, 0, width, height);
-        this.footPrint = this.footPrint.filter(item => (!item.destroyed && item.render(), !item.destroyed));
+        this.footprints = this.footprints.filter(item => (!item.destroyed && item.render(), !item.destroyed));
         cvsCtx.save();
         cvsCtx.globalCompositeOperation = 'source-out';
-        cvsCtx.drawImage(cover, 0, 0, width, height);
+        if (cover) {
+            cvsCtx.drawImage(cover, 0, 0, width, height);
+        } else {
+            cvsCtx.fillStyle = '#ababab';
+            cvsCtx.fillRect(0, 0, width, height);
+        }
         cvsCtx.restore();
         requestAnimationFrame(this.#onEnterFrame);
     };
@@ -155,4 +176,4 @@ class ScratchCard {
     };
 }
 
-export default ScratchCard;
+export default Scratchcard;

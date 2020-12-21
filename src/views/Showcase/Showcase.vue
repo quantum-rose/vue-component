@@ -7,7 +7,7 @@
 
 <script>
 import section_01 from "./components/section-01-MovieClip";
-import section_02 from "./components/section-02-ScratchCard";
+import section_02 from "./components/section-02-Scratchcard";
 
 export default {
     name: "Showcase",
