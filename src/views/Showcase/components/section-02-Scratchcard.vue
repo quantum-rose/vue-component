@@ -1,5 +1,13 @@
 <template>
     <section class="scratch-card">
+        <div class="event-light-group">
+            <EventLight
+                class="event-light"
+                ref="complete"
+                eventName="complete"
+            />
+            <EventLight class="event-light" ref="change" eventName="change" />
+        </div>
         <div class="card">
             <div class="content">
                 Lorem ipsum dolor, sit amet consectetur adipisicing elit.
@@ -24,9 +32,12 @@
             </div>
             <Scratchcard
                 class="demo"
+                ref="Scratchcard"
                 :width="850"
                 :height="456"
                 :cover="cover"
+                @complete="$refs.complete.flash()"
+                @change="$refs.change.flash()"
             />
         </div>
     </section>
@@ -34,11 +45,13 @@
 
 <script>
 import Scratchcard from "@/components/Scratchcard/Scratchcard.vue";
+import EventLight from "@/components/EventLight/EventLight.vue";
 
 export default {
     name: "w",
     components: {
         Scratchcard,
+        EventLight,
     },
     data() {
         return {
@@ -50,10 +63,18 @@ export default {
 
 <style lang="scss" scoped>
 .scratch-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: auto;
     height: auto;
     padding: 15px;
     text-align: center;
+
+    .event-light {
+        margin-left: 2px;
+        margin-right: 2px;
+    }
 
     .card {
         position: relative;

@@ -50,21 +50,35 @@ class Scratchcard {
     cvsCtx = null;
     footprints = [];
     cover = null;
+    progress = 0;
+    completed = false;
 
-    constructor(cvs, img) {
+    #onComplete = null;
+    #onChange = null;
+
+    constructor(cvs, { cover = null, brush = null, onComplete = null, onChange = null } = {}) {
         this.cvs = cvs;
         this.cvsCtx = cvs.getContext('2d');
 
-        this.cover = document.createElement('img');
-        this.cover.src = img;
-        this.cover.addEventListener('load', this.#onLoad);
-        this.cover.addEventListener('error', () => {
-            this.cover = null;
-            this.#onLoad();
-        });
+        console.log(brush);
+        if (typeof cover === 'string') {
+            this.cover = document.createElement('img');
+            this.cover.src = cover;
+            this.cover.addEventListener('load', this.#init);
+            this.cover.addEventListener('error', () => {
+                this.cover = null;
+                this.#init();
+            });
+        } else {
+            this.cover = cover;
+            this.#init();
+        }
+
+        this.#onComplete = onComplete;
+        this.#onChange = onChange;
     }
 
-    #onLoad = () => {
+    #init = () => {
         this.#bindMouseEvent();
         this.#bindTouchEvent();
         this.#onEnterFrame();
@@ -148,12 +162,13 @@ class Scratchcard {
         } = this;
         cvsCtx.clearRect(0, 0, width, height);
         this.footprints = this.footprints.filter(item => (!item.destroyed && item.render(), !item.destroyed));
+        this.#watchPixel();
         cvsCtx.save();
         cvsCtx.globalCompositeOperation = 'source-out';
         if (cover) {
             cvsCtx.drawImage(cover, 0, 0, width, height);
         } else {
-            cvsCtx.fillStyle = '#ababab';
+            cvsCtx.fillStyle = '#808080';
             cvsCtx.fillRect(0, 0, width, height);
         }
         cvsCtx.restore();
@@ -172,6 +187,27 @@ class Scratchcard {
                 left,
                 top,
             };
+        }
+    };
+
+    #watchPixel = () => {
+        const {
+            cvs: { width, height },
+            cvsCtx,
+        } = this;
+        const imageData = cvsCtx.getImageData(0, 0, width, height);
+        let alpha = 0;
+        for (let i = 0; i < imageData.data.length / 4; i++) {
+            alpha += imageData.data[i * 4 + 3];
+        }
+        const p = alpha / (width * height * 255);
+        if (p !== this.progress) {
+            this.progress = p;
+            this.#onChange(p);
+        }
+        if (p > 0.5 && !this.completed) {
+            this.completed = true;
+            this.#onComplete();
         }
     };
 }

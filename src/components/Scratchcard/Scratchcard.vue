@@ -22,7 +22,15 @@ export default {
         },
     },
     mounted() {
-        new Scratchcard(this.$refs.cvs, this.cover);
+        new Scratchcard(this.$refs.cvs, {
+            cover: this.cover,
+            onComplete: () => {
+                this.$emit("complete", {});
+            },
+            onChange: () => {
+                this.$emit("change", {});
+            },
+        });
     },
 };
 </script>
