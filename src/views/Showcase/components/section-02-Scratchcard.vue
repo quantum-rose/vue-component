@@ -48,14 +48,15 @@ import Scratchcard from "@/components/Scratchcard/Scratchcard.vue";
 import EventLight from "@/components/EventLight/EventLight.vue";
 
 export default {
-    name: "w",
+    name: "section-02-Scratchcard",
     components: {
         Scratchcard,
         EventLight,
     },
     data() {
         return {
-            cover: require("@/assets/scratchcard/bg.jpg"),
+            cover: require("@/assets/scratchcard/cover.jpg"),
+            brush: require("@/assets/scratchcard/brush.png"),
         };
     },
 };

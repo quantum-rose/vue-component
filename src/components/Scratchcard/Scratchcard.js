@@ -4,45 +4,51 @@ class Footprint {
     startY = 0;
     endX = 0;
     endY = 0;
-    duration = 0;
-    #startTime = 0;
+    brush = null;
+    lifetime = 0;
 
-    constructor({ cvsCtx, startX, startY, endX, endY, duration = 0 }) {
+    constructor({ cvsCtx, startX, startY, endX, endY, brush = null, lifetime = 0 }) {
         this.cvsCtx = cvsCtx;
         this.startX = startX;
         this.startY = startY;
         this.endX = endX;
         this.endY = endY;
-        if (!isNaN(duration) && parseInt(duration) > 0) {
-            this.duration = parseInt(duration);
+        this.brush = brush;
+        if (!isNaN(lifetime) && parseInt(lifetime) > 0) {
+            this.lifetime = parseInt(lifetime);
         }
-        this.#startTime = Date.now();
     }
 
-    #p = 0;
+    #startTime = Date.now();
+    get remainingTime() {
+        return Math.max(this.#startTime + this.lifetime - Date.now(), 0);
+    }
     get destroyed() {
-        return this.#p === 1;
+        return this.lifetime > 0 && this.remainingTime === 0;
     }
-    render() {
-        const { cvsCtx, duration, startX, startY, endX, endY } = this;
-        cvsCtx.beginPath();
-        cvsCtx.strokeStyle = '#000000';
-        if (duration) {
-            this.#p = this.#easeInQuad(Math.min((Date.now() - this.#startTime) / duration, 1));
-            cvsCtx.lineWidth = 50 * (1 - this.#p) + 1;
-        } else {
-            cvsCtx.lineWidth = 50;
-        }
-        cvsCtx.lineCap = 'round';
-        cvsCtx.moveTo(startX, startY);
-        cvsCtx.lineTo(endX, endY);
-        cvsCtx.stroke();
-        cvsCtx.closePath();
-    }
+    #progress = 0;
 
-    #easeInQuad = x => {
-        return x * x;
-    };
+    render() {
+        const { cvsCtx, lifetime, remainingTime, startX, startY, endX, endY, brush } = this;
+        if (lifetime > 0) {
+            this.#progress = (1 - remainingTime / lifetime) ** 2;
+        }
+        cvsCtx.save();
+        if (brush) {
+            cvsCtx.globalAlpha = 1 - this.#progress;
+            cvsCtx.drawImage(brush, endX - brush.width / 2, endY - brush.height / 2);
+        } else {
+            cvsCtx.beginPath();
+            cvsCtx.strokeStyle = '#000000';
+            cvsCtx.lineWidth = 50 * (1 - this.#progress);
+            cvsCtx.lineCap = 'round';
+            cvsCtx.moveTo(startX, startY);
+            cvsCtx.lineTo(endX, endY);
+            cvsCtx.stroke();
+            cvsCtx.closePath();
+        }
+        cvsCtx.restore();
+    }
 }
 
 class Scratchcard {
@@ -50,39 +56,32 @@ class Scratchcard {
     cvsCtx = null;
     footprints = [];
     cover = null;
+    brush = null;
+    brushLifetime = 0;
     progress = 0;
     completed = false;
 
     #onComplete = null;
     #onChange = null;
 
-    constructor(cvs, { cover = null, brush = null, onComplete = null, onChange = null } = {}) {
+    init(cvs, { cover = null, brush = null, brushLifetime = 0, onComplete = null, onChange = null } = {}) {
         this.cvs = cvs;
         this.cvsCtx = cvs.getContext('2d');
+        this.brushLifetime = brushLifetime;
 
-        console.log(brush);
-        if (typeof cover === 'string') {
-            this.cover = document.createElement('img');
-            this.cover.src = cover;
-            this.cover.addEventListener('load', this.#init);
-            this.cover.addEventListener('error', () => {
-                this.cover = null;
-                this.#init();
-            });
-        } else {
-            this.cover = cover;
-            this.#init();
-        }
+        const taskLoadCover = Scratchcard.#preloadImage(cover);
+        const taskLoadBrush = Scratchcard.#preloadImage(brush);
+        Promise.allSettled([taskLoadCover, taskLoadBrush]).then(result => {
+            this.cover = result[0].value;
+            this.brush = result[1].value;
+            this.#bindMouseEvent();
+            this.#bindTouchEvent();
+            this.#onEnterFrame();
+        });
 
         this.#onComplete = onComplete;
         this.#onChange = onChange;
     }
-
-    #init = () => {
-        this.#bindMouseEvent();
-        this.#bindTouchEvent();
-        this.#onEnterFrame();
-    };
 
     #pixelRatio = { x: 1, y: 1 };
     #offset = { left: 0, top: 0 };
@@ -129,7 +128,7 @@ class Scratchcard {
         } = this;
         this.#pixelRatio.x = width / offsetWidth;
         this.#pixelRatio.y = height / offsetHeight;
-        const { left, top } = this.#getOffset(cvs);
+        const { left, top } = Scratchcard.#getOffset(cvs);
         this.#offset.left = left;
         this.#offset.top = top;
         const { pageX, pageY } = e;
@@ -150,6 +149,8 @@ class Scratchcard {
                 startY: y,
                 endX: lastPoint.x,
                 endY: lastPoint.y,
+                brush: this.brush,
+                lifetime: this.brushLifetime,
             })
         );
     };
@@ -175,21 +176,6 @@ class Scratchcard {
         requestAnimationFrame(this.#onEnterFrame);
     };
 
-    #getOffset = el => {
-        const { offsetLeft: left, offsetTop: top, offsetParent: parent } = el;
-        if (parent) {
-            const offset = this.#getOffset(parent);
-            offset.left += left;
-            offset.top += top;
-            return offset;
-        } else {
-            return {
-                left,
-                top,
-            };
-        }
-    };
-
     #watchPixel = () => {
         const {
             cvs: { width, height },
@@ -208,6 +194,38 @@ class Scratchcard {
         if (p > 0.5 && !this.completed) {
             this.completed = true;
             this.#onComplete();
+        }
+    };
+
+    static #preloadImage = imgUrl => {
+        return new Promise(resolve => {
+            if (typeof imgUrl === 'string') {
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                img.addEventListener('load', () => {
+                    resolve(img);
+                });
+                img.addEventListener('error', () => {
+                    resolve(null);
+                });
+            } else {
+                resolve(imgUrl);
+            }
+        });
+    };
+
+    static #getOffset = el => {
+        const { offsetLeft: left, offsetTop: top, offsetParent: parent } = el;
+        if (parent) {
+            const offset = Scratchcard.#getOffset(parent);
+            offset.left += left;
+            offset.top += top;
+            return offset;
+        } else {
+            return {
+                left,
+                top,
+            };
         }
     };
 }

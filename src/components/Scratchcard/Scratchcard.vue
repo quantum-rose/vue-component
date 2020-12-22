@@ -20,10 +20,25 @@ export default {
             type: String,
             default: "",
         },
+        brush: {
+            type: String,
+            default: "",
+        },
+        brushLifetime: {
+            type: Number,
+            default: 0,
+        },
+    },
+    data() {
+        return {
+            Scratchcard: new Scratchcard(),
+        };
     },
     mounted() {
-        new Scratchcard(this.$refs.cvs, {
+        this.Scratchcard.init(this.$refs.cvs, {
             cover: this.cover,
+            brush: this.brush,
+            brushLifetime: this.brushLifetime,
             onComplete: () => {
                 this.$emit("complete", {});
             },
