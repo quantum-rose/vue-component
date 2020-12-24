@@ -40,6 +40,11 @@
                 @change="$refs.change.flash()"
             />
         </div>
+        <div class="btn-group">
+            <button class="btn" @click="$refs.Scratchcard.clear()">
+                Clear
+            </button>
+        </div>
     </section>
 </template>
 
@@ -71,10 +76,15 @@ export default {
     height: auto;
     padding: 15px;
     text-align: center;
+    background-color: #eeeeee;
 
-    .event-light {
-        margin-left: 2px;
-        margin-right: 2px;
+    .event-light-group {
+        margin-bottom: 10px;
+
+        .event-light {
+            margin-left: 2px;
+            margin-right: 2px;
+        }
     }
 
     .card {
@@ -104,6 +114,18 @@ export default {
             left: 0;
             max-width: 100%;
         }
+    }
+
+    .btn-group::before {
+        content: "";
+        display: block;
+        width: 100%;
+        height: 10px;
+    }
+
+    .btn {
+        margin-left: 2px;
+        margin-right: 2px;
     }
 }
 </style>

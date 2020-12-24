@@ -54,7 +54,6 @@ class Footprint {
 class Scratchcard {
     cvs = null;
     cvsCtx = null;
-    footprints = [];
     cover = null;
     brush = null;
     brushLifetime = 0;
@@ -83,6 +82,7 @@ class Scratchcard {
         this.#onChange = onChange;
     }
 
+    #footprints = [];
     #pixelRatio = { x: 1, y: 1 };
     #offset = { left: 0, top: 0 };
     #lastPoint = {};
@@ -142,7 +142,7 @@ class Scratchcard {
         const { pageX, pageY } = e;
         lastPoint.x = (pageX - left) * this.#pixelRatio.x;
         lastPoint.y = (pageY - top) * this.#pixelRatio.y;
-        this.footprints.push(
+        this.#footprints.push(
             new Footprint({
                 cvsCtx: this.cvsCtx,
                 startX: x,
@@ -162,7 +162,7 @@ class Scratchcard {
             cover,
         } = this;
         cvsCtx.clearRect(0, 0, width, height);
-        this.footprints = this.footprints.filter(item => (!item.destroyed && item.render(), !item.destroyed));
+        this.#footprints = this.#footprints.filter(item => (!item.destroyed && item.render(), !item.destroyed));
         this.#watchPixel();
         cvsCtx.save();
         cvsCtx.globalCompositeOperation = 'source-out';
@@ -196,6 +196,10 @@ class Scratchcard {
             this.#onComplete();
         }
     };
+
+    clear() {
+        this.#footprints.length = 0;
+    }
 
     static #preloadImage = imgUrl => {
         return new Promise(resolve => {

@@ -47,6 +47,11 @@ export default {
             },
         });
     },
+    methods:{
+        clear(){
+            this.Scratchcard.clear()
+        }
+    }
 };
 </script>
 
