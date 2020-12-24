@@ -1,26 +1,18 @@
 <template>
     <section class="movie-clip">
         <div class="event-light-group">
-            <EventLight
-                class="event-light"
-                ref="movieClipPlay"
-                eventName="play"
-            />
+            <EventLight class="event-light" ref="movieClipPlay" event="play" />
             <EventLight
                 class="event-light"
                 ref="movieClipPause"
-                eventName="pause"
+                event="pause"
             />
             <EventLight
                 class="event-light"
                 ref="movieClipStart"
-                eventName="start"
+                event="start"
             />
-            <EventLight
-                class="event-light"
-                ref="movieClipEnd"
-                eventName="end"
-            />
+            <EventLight class="event-light" ref="movieClipEnd" event="end" />
         </div>
         <MovieClip
             class="demo"

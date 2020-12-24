@@ -1,22 +1,21 @@
 <template>
-    <div
-        class="event-light"
-        :style="{ '--color': color, '--alpha': alpha }"
-        v-text="eventName"
-    ></div>
+    <div class="event-light" :style="{ '--alpha': alpha }">
+        <div class="event-name" v-text="event"></div>
+        <div class="event-value" v-text="value"></div>
+    </div>
 </template>
 
 <script>
 export default {
     name: "EventLight",
     props: {
-        eventName: {
+        event: {
             type: String,
             required: true,
         },
-        color: {
+        value: {
             type: String,
-            default: "rgba(255,0,0,1)",
+            default: "",
         },
     },
     data() {
@@ -53,7 +52,6 @@ export default {
 
 <style lang="scss" scoped>
 .event-light {
-    --color: rgba(255, 0, 0, 1);
     --alpha: 0.7;
 
     position: relative;
@@ -73,7 +71,7 @@ export default {
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background-color: var(--color);
+        background-color: rgba(255, 0, 0, 1);
     }
 
     &::after {
@@ -86,6 +84,14 @@ export default {
         border-radius: 50%;
         background-color: #000000;
         opacity: var(--alpha);
+    }
+
+    .event-name {
+        margin-right: 2px;
+    }
+
+    .event-value {
+        color: rgba(0, 110, 255, 1);
     }
 }
 </style>

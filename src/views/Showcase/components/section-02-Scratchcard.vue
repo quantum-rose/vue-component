@@ -3,10 +3,10 @@
         <div class="event-light-group">
             <EventLight
                 class="event-light"
-                ref="complete"
-                eventName="complete"
+                ref="change"
+                event="change"
+                :value="progress"
             />
-            <EventLight class="event-light" ref="change" eventName="change" />
         </div>
         <div class="card">
             <div class="content">
@@ -36,8 +36,7 @@
                 :width="850"
                 :height="456"
                 :cover="cover"
-                @complete="$refs.complete.flash()"
-                @change="$refs.change.flash()"
+                @change="handleChange"
             />
         </div>
         <div class="btn-group">
@@ -62,7 +61,14 @@ export default {
         return {
             cover: require("@/assets/scratchcard/cover.jpg"),
             brush: require("@/assets/scratchcard/brush.png"),
+            progress: "0.000000",
         };
+    },
+    methods: {
+        handleChange(e) {
+            this.progress = e.progress.toFixed(6);
+            this.$refs.change.flash();
+        },
     },
 };
 </script>

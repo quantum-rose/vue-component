@@ -58,12 +58,10 @@ class Scratchcard {
     brush = null;
     brushLifetime = 0;
     progress = 0;
-    completed = false;
 
-    #onComplete = null;
     #onChange = null;
 
-    init(cvs, { cover = null, brush = null, brushLifetime = 0, onComplete = null, onChange = null } = {}) {
+    init(cvs, { cover = null, brush = null, brushLifetime = 0, onChange = null } = {}) {
         this.cvs = cvs;
         this.cvsCtx = cvs.getContext('2d');
         this.brushLifetime = brushLifetime;
@@ -78,7 +76,6 @@ class Scratchcard {
             this.#onEnterFrame();
         });
 
-        this.#onComplete = onComplete;
         this.#onChange = onChange;
     }
 
@@ -190,10 +187,6 @@ class Scratchcard {
         if (p !== this.progress) {
             this.progress = p;
             this.#onChange(p);
-        }
-        if (p > 0.5 && !this.completed) {
-            this.completed = true;
-            this.#onComplete();
         }
     };
 

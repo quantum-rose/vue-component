@@ -39,19 +39,16 @@ export default {
             cover: this.cover,
             brush: this.brush,
             brushLifetime: this.brushLifetime,
-            onComplete: () => {
-                this.$emit("complete", {});
-            },
-            onChange: () => {
-                this.$emit("change", {});
+            onChange: (v) => {
+                this.$emit("change", { progress: v });
             },
         });
     },
-    methods:{
-        clear(){
-            this.Scratchcard.clear()
-        }
-    }
+    methods: {
+        clear() {
+            this.Scratchcard.clear();
+        },
+    },
 };
 </script>
 
